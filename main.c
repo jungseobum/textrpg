@@ -4,12 +4,16 @@
 #include "map.h"
 #include "battle.h"
 #include "player.h"
+#include "npc.h"
 
 int main() {
     srand(time(NULL));
 
     Player hero;
     init_player(&hero, "HERO");
+
+    npc_init();                              // (1) NPC 시스템 초기화
+    npc_add(2, 2, NPC_SHOP, "Bob");
 
     printf("==== Text RPG ====\n");
     printf("Name: %s | HP: %d | ATK: %d | DEF: %d\n",

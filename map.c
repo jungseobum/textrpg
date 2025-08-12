@@ -1,27 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <conio.h>
 #include "map.h"
 #include "npc.h"
 
 #define H 10
 #define W 20
 
-char get_npc_symbol(NpcType type) {
-    if (type == NPC_SHOP) return 'S';
-    if (type == NPC_QUEST) return 'Q';
-    if (type == NPC_HEALER) return 'H';
-    return 'N';
-}
 
-int is_npc_at(int x, int y, int* index) {
-    for (int i = 0; i < npc_count; i++) {
-        if (npc_list[i].x == x && npc_list[i].y == y) {
-            if (index) *index = i;
-            return 1;
-        }
-    }
-    return 0;
-}
+
+// 상호작용(e)
 
 // 간단한 맵 (벽:#, 길:.)
 char map[H][W + 1] = {
@@ -44,18 +32,21 @@ void draw_map(Player *p) {
             if (i == p->y && j == p->x)
                 printf("&"); // 플레이어
             else {
-                int idx;
-                if (is_npc_at(j, i, &idx))
-                    printf("%c", get_npc_symbol(npc_list[idx].type));
-                else
-                    printf("%c", map[i][j]);
+                //int idx;
+                //if (is_npc_at(j, i, &idx))
+                    //printf("%c", get_npc_symbol(npc_list[idx].type));
+                //else
+                int idx=npc_find_at(j, i);
+                if (idx >= 0) printf("%c", npc_symbol(npc_get(idx)->type));
+                else printf("%c",map[i][j]);                
             }
-           
+        }
         printf("\n");
     }
+
     printf("\nmove: w/a/s/d | quit: q | menu: m\n");
 }
-
+/*
 void interact_with_npc(Player* p) {
     for (int i = 0; i < npc_count; i++) {
         if (abs(p->x - npc_list[i].x) + abs(p->y - npc_list[i].y) == 1) {
@@ -71,12 +62,23 @@ void interact_with_npc(Player* p) {
     }
     printf("No one to talk to.\n");
 }
-
+*/
 int move_player(Player *p) {
     char input;
     scanf(" %c", &input);
-
-    if (input == 'e') { interact_with_npc(p); return 0; }
+    if (input=='e'){
+        int adj=npc_adjacent_index(p->x,p->y);
+        if (adj >= 0){
+            const NPC* n = npc_get(adj);
+            printf("\nPress any key to continue...\n");
+            _getch();
+        // 타입에 따라 동작
+            if (n->type == NPC_SHOP) {}//open_consumable_shop(p); 
+            
+        // ... HEALER/QUEST 등
+        } 
+        return 0;
+    }
 
     if (input == 'q') {
         printf("quit the game.\n");
@@ -99,7 +101,6 @@ int move_player(Player *p) {
         p->x = nx;
         p->y = ny;
     }
-
     // 일정 확률로 전투 조우
     return (rand() % 5 == 0); // 1/7 확률
 }
